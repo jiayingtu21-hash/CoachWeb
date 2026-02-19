@@ -8,11 +8,13 @@ import pandas as pd
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
 import numpy as np
+from i18n import language_selector, t
 
 API_URL = "http://localhost:8000"
 
 st.set_page_config(page_title="Train", page_icon="🤖", layout="wide")
-st.title("🤖 模型训练")
+language_selector()
+st.title(t("train_title"))
 
 
 def api_get(path):
@@ -30,20 +32,20 @@ def api_post(path, json_data):
         r.raise_for_status()
         return r.json()
     except Exception as e:
-        st.error(f"请求失败: {e}")
+        st.error(f"{t('request_failed')}: {e}")
         return None
 
 
 # ---- 加载 Sessions ----
 sessions_data = api_get("/api/sessions/list")
 if not sessions_data or not sessions_data.get("sessions"):
-    st.info("暂无数据，请先上传 CSV")
+    st.info(t("no_data_upload_short"))
     st.stop()
 
 sessions = sessions_data["sessions"]
 
 # ---- Step 1: 选择训练数据 ----
-st.subheader("1. 选择训练数据")
+st.subheader(t("select_training_data"))
 
 session_options = {}
 for s in sessions:
@@ -51,7 +53,7 @@ for s in sessions:
     session_options[label] = s["id"]
 
 selected = st.multiselect(
-    "选择 Sessions（可多选）",
+    t("select_sessions_multi"),
     options=list(session_options.keys()),
     default=list(session_options.keys())
 )
@@ -61,30 +63,32 @@ if selected:
     total_good = sum(s.get('good_count', 0) for s in sessions if s['id'] in selected_ids)
     total_bad = sum(s.get('bad_count', 0) for s in sessions if s['id'] in selected_ids)
     c1, c2, c3 = st.columns(3)
-    c1.metric("选中 Sessions", len(selected_ids))
-    c2.metric("Good 样本", total_good)
-    c3.metric("Bad 样本", total_bad)
+    c1.metric(t("selected_sessions"), len(selected_ids))
+    c2.metric(t("good_samples"), total_good)
+    c3.metric(t("bad_samples"), total_bad)
 
     if total_good == 0 or total_bad == 0:
-        st.warning("需要同时有 Good 和 Bad 样本才能训练")
+        st.warning(t("need_both"))
 
 st.markdown("---")
 
 # ---- Step 2: 模型配置 ----
-st.subheader("2. 模型配置")
+st.subheader(t("model_config"))
+
+model_type_names = {"svm": t("svm_name"), "decision_tree": t("dt_name"), "random_forest": t("rf_name")}
 
 col1, col2 = st.columns(2)
 
 with col1:
     model_type = st.selectbox(
-        "模型类型",
+        t("model_type"),
         ["svm", "decision_tree", "random_forest"],
-        format_func=lambda x: {"svm": "SVM (支持向量机)", "decision_tree": "决策树", "random_forest": "随机森林"}[x]
+        format_func=lambda x: model_type_names[x]
     )
 
 with col2:
     if model_type == "svm":
-        svm_c = st.slider("C (正则化)", 0.01, 10.0, 1.0, step=0.1)
+        svm_c = st.slider(t("regularization"), 0.01, 10.0, 1.0, step=0.1)
         svm_kernel = st.selectbox("Kernel", ["rbf", "linear", "poly"])
         max_depth = None
         n_estimators = 100
@@ -94,8 +98,8 @@ with col2:
         svm_kernel = "rbf"
         n_estimators = 100
     else:
-        n_estimators = st.slider("树数量", 10, 500, 100, step=10)
-        max_depth = st.slider("Max Depth (0=无限)", 0, 20, 5)
+        n_estimators = st.slider(t("tree_count"), 10, 500, 100, step=10)
+        max_depth = st.slider(t("max_depth_label"), 0, 20, 5)
         if max_depth == 0:
             max_depth = None
         svm_c = 1.0
@@ -104,10 +108,10 @@ with col2:
 st.markdown("---")
 
 # ---- Step 3: 开始训练 ----
-st.subheader("3. 训练")
+st.subheader(t("training_section"))
 
-if st.button("🚀 开始训练", type="primary", use_container_width=True, disabled=not selected_ids):
-    with st.spinner("训练中..."):
+if st.button(t("start_training"), type="primary", use_container_width=True, disabled=not selected_ids):
+    with st.spinner(t("training_progress")):
         result = api_post("/api/training/start", {
             "session_ids": selected_ids,
             "model_type": model_type,
@@ -118,32 +122,32 @@ if st.button("🚀 开始训练", type="primary", use_container_width=True, disa
         })
 
     if result and result.get("status") == "completed":
-        st.success("训练完成！")
+        st.success(t("training_complete"))
         st.session_state["last_training_result"] = result
     elif result:
-        st.error(f"训练失败: {result}")
+        st.error(f"{t('training_failed')}: {result}")
 
 # ---- Step 4: 显示结果 ----
 result = st.session_state.get("last_training_result")
 if result:
     st.markdown("---")
-    st.subheader("4. 训练结果")
+    st.subheader(t("results_section"))
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("准确率", f"{result['accuracy']:.1%}")
-    c2.metric("精确率", f"{result['precision']:.1%}")
-    c3.metric("召回率", f"{result['recall']:.1%}")
-    c4.metric("F1 Score", f"{result['f1_score']:.1%}")
+    c1.metric(t("accuracy"), f"{result['accuracy']:.1%}")
+    c2.metric(t("precision"), f"{result['precision']:.1%}")
+    c3.metric(t("recall"), f"{result['recall']:.1%}")
+    c4.metric(t("f1_score"), f"{result['f1_score']:.1%}")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown("**交叉验证**")
-        st.write(f"平均: {result['cv_mean']:.1%} ± {result['cv_std']:.1%}")
-        st.write(f"样本数: {result['sample_count']}")
+        st.markdown(f"**{t('cross_val')}**")
+        st.write(f"{t('cv_mean')}: {result['cv_mean']:.1%} ± {result['cv_std']:.1%}")
+        st.write(f"{t('sample_count')}: {result['sample_count']}")
 
     with col2:
-        st.markdown("**混淆矩阵**")
+        st.markdown(f"**{t('confusion_matrix')}**")
         cm = result.get("confusion_matrix", [])
         labels = result.get("labels", ["bad", "good"])
         if cm:
@@ -157,8 +161,8 @@ if result:
                 colorscale="Blues",
             ))
             fig_cm.update_layout(
-                xaxis_title="预测",
-                yaxis_title="实际",
+                xaxis_title=t("predicted"),
+                yaxis_title=t("actual"),
                 height=300,
             )
             st.plotly_chart(fig_cm, use_container_width=True)
@@ -170,26 +174,26 @@ if result:
         col1, col2 = st.columns(2)
         with col1:
             if result.get("coreml_exported"):
-                st.markdown(f"**下载 CoreML 模型**")
-                st.markdown(f"[点击下载 tennis_model_{run_id}.mlmodel]({API_URL}/api/training/download/{run_id}?fmt=mlmodel)")
+                st.markdown(f"**{t('download_coreml')}**")
+                st.markdown(f"[{t('click_download')} tennis_model_{run_id}.mlmodel]({API_URL}/api/training/download/{run_id}?fmt=mlmodel)")
             else:
-                st.info("CoreML 未导出（需要 coremltools）")
+                st.info(t("coreml_not_exported"))
         with col2:
-            st.markdown(f"**下载 Pickle 模型**")
-            st.markdown(f"[点击下载 tennis_model_{run_id}.pkl]({API_URL}/api/training/download/{run_id}?fmt=pkl)")
+            st.markdown(f"**{t('download_pkl')}**")
+            st.markdown(f"[{t('click_download')} tennis_model_{run_id}.pkl]({API_URL}/api/training/download/{run_id}?fmt=pkl)")
 
 st.markdown("---")
 
 # ---- 训练历史 ----
-st.subheader("训练历史")
+st.subheader(t("training_history"))
 runs_data = api_get("/api/training/runs")
 if runs_data and runs_data.get("runs"):
     for run in reversed(runs_data["runs"]):
         with st.container(border=True):
             c1, c2, c3, c4 = st.columns(4)
             c1.write(f"**{run['run_id']}**")
-            c2.write(f"模型: {run['model_type']}")
-            c3.write(f"准确率: {run['accuracy']:.1%}")
-            c4.write(f"样本: {run['sample_count']}")
+            c2.write(f"{t('model_label')}: {run['model_type']}")
+            c3.write(f"{t('accuracy_label')}: {run['accuracy']:.1%}")
+            c4.write(f"{t('samples_label')}: {run['sample_count']}")
 else:
-    st.info("还没有训练记录")
+    st.info(t("no_training_history"))

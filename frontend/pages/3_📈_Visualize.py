@@ -7,11 +7,13 @@ import requests
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from i18n import language_selector, t
 
 API_URL = "http://localhost:8000"
 
 st.set_page_config(page_title="Visualize", page_icon="📈", layout="wide")
-st.title("📈 数据可视化")
+language_selector()
+st.title(t("viz_title"))
 
 
 def api_get(path):
@@ -26,7 +28,7 @@ def api_get(path):
 # ---- 加载 Sessions ----
 sessions_data = api_get("/api/sessions/list")
 if not sessions_data or not sessions_data.get("sessions"):
-    st.info("暂无数据，请先上传 CSV 文件")
+    st.info(t("no_data_upload"))
     st.stop()
 
 sessions = sessions_data["sessions"]
@@ -34,25 +36,25 @@ session_options = {s["name"]: s["id"] for s in sessions}
 
 # ---- Session 选择 ----
 selected_names = st.multiselect(
-    "选择 Session（可多选对比）",
+    t("select_sessions"),
     options=list(session_options.keys()),
     default=[list(session_options.keys())[0]] if session_options else []
 )
 
 if not selected_names:
-    st.warning("请选择至少一个 Session")
+    st.warning(t("select_one"))
     st.stop()
 
 # ---- 显示控制 ----
 col1, col2 = st.columns(2)
 with col1:
     show_axes = st.multiselect(
-        "显示轴",
+        t("show_axes"),
         ["AccX", "AccY", "AccZ", "AccMag", "GyroX", "GyroY", "GyroZ"],
         default=["AccMag"]
     )
 with col2:
-    sample_rate = st.slider("降采样点数（0=全部）", 0, 5000, 2000, step=500)
+    sample_rate = st.slider(t("downsample"), 0, 5000, 2000, step=500)
 
 # 轴名称到 CSV 列名的映射
 axis_map = {
@@ -65,7 +67,7 @@ axis_map = {
 colors = ["#FF6B35", "#1E90FF", "#32CD32", "#FF1493", "#FFD700", "#8A2BE2"]
 
 # ---- IMU 时序图 ----
-st.subheader("IMU 时序图")
+st.subheader(t("imu_chart"))
 
 fig = make_subplots(rows=1, cols=1)
 
@@ -74,7 +76,7 @@ for i, name in enumerate(selected_names):
     params = {"sample_rate": sample_rate} if sample_rate > 0 else {}
     raw = api_get(f"/api/viz/raw-data/{sid}?sample_rate={params.get('sample_rate', '')}")
     if not raw or not raw.get("data"):
-        st.warning(f"Session '{name}' 无 raw 数据")
+        st.warning(f"Session '{name}' {t('no_raw_data')}")
         continue
 
     df = pd.DataFrame(raw["data"])
@@ -96,7 +98,7 @@ for i, name in enumerate(selected_names):
             ))
 
 # 在时序图上叠加峰值标记
-show_peaks = st.checkbox("显示峰值标记", value=True)
+show_peaks = st.checkbox(t("show_peaks"), value=True)
 if show_peaks:
     for i, name in enumerate(selected_names):
         sid = session_options[name]
@@ -120,15 +122,15 @@ if show_peaks:
 
 fig.update_layout(
     height=500,
-    xaxis_title="时间 (秒)",
-    yaxis_title="数值",
+    xaxis_title=t("time_sec"),
+    yaxis_title=t("value"),
     hovermode="x unified",
     legend=dict(orientation="h", y=-0.2),
 )
 st.plotly_chart(fig, use_container_width=True)
 
 # ---- Feedback 散点图 ----
-st.subheader("动作质量散点图")
+st.subheader(t("quality_scatter"))
 
 for i, name in enumerate(selected_names):
     sid = session_options[name]
@@ -169,8 +171,8 @@ for i, name in enumerate(selected_names):
 
     fig_fb.update_layout(
         height=250,
-        xaxis_title="动作序号",
-        yaxis_title="质量",
+        xaxis_title=t("action_index"),
+        yaxis_title=t("quality"),
         showlegend=True,
         legend=dict(orientation="h", y=-0.3),
     )

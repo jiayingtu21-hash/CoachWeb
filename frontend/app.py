@@ -3,6 +3,7 @@ Tennis Coach Web - Dashboard 主页
 """
 import streamlit as st
 import requests
+from i18n import language_selector, t
 
 API_URL = "http://localhost:8000"
 
@@ -12,7 +13,9 @@ st.set_page_config(
     layout="wide",
 )
 
-st.title("🎾 Tennis Coach Dashboard")
+language_selector()
+
+st.title(t("dashboard_title"))
 st.markdown("---")
 
 
@@ -30,16 +33,16 @@ def api_get(path):
 # 检查后端连接
 health = api_get("/health")
 if health:
-    st.success("后端已连接 ✓")
+    st.success(f"{t('backend_connected')} ✓")
 else:
-    st.error("后端未连接 - 请先启动 FastAPI：`cd backend && uvicorn main:app --reload`")
+    st.error(f"{t('backend_disconnected')}：`cd backend && uvicorn main:app --reload`")
     st.stop()
 
 # ---- 项目概览 ----
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("📊 项目")
+    st.subheader(t("projects"))
     projects_data = api_get("/api/projects/list")
     if projects_data and projects_data.get("projects"):
         for proj in projects_data["projects"]:
@@ -47,10 +50,10 @@ with col1:
                 st.markdown(f"**{proj['name']}**")
                 st.caption(f"Sessions: {proj.get('session_count', 0)} | ID: {proj['id']}")
     else:
-        st.info("暂无项目，去 Projects 页面创建一个吧")
+        st.info(t("no_projects"))
 
 with col2:
-    st.subheader("📁 Sessions")
+    st.subheader(t("sessions"))
     sessions_data = api_get("/api/sessions/list")
     if sessions_data and sessions_data.get("sessions"):
         for s in sessions_data["sessions"]:
@@ -59,13 +62,13 @@ with col2:
                 good = s.get('good_count', 0)
                 bad = s.get('bad_count', 0)
                 total = s.get('action_count', 0)
-                st.caption(f"动作: {total} | Good: {good} | Bad: {bad}")
+                st.caption(f"{t('actions')}: {total} | Good: {good} | Bad: {bad}")
     else:
-        st.info("暂无数据，去 Upload 页面上传 CSV")
+        st.info(t("no_sessions"))
 
 # ---- 快速统计 ----
 st.markdown("---")
-st.subheader("📈 快速统计")
+st.subheader(t("quick_stats"))
 
 sessions = sessions_data.get("sessions", []) if sessions_data else []
 if sessions:
@@ -74,12 +77,12 @@ if sessions:
     total_bad = sum(s.get('bad_count', 0) for s in sessions)
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("总 Sessions", len(sessions))
-    c2.metric("总动作数", total_actions)
+    c1.metric(t("total_sessions"), len(sessions))
+    c2.metric(t("total_actions"), total_actions)
     c3.metric("Good", total_good)
     c4.metric("Bad", total_bad)
 else:
-    st.info("上传数据后这里会显示统计信息")
+    st.info(t("upload_first"))
 
 st.markdown("---")
 st.caption("Tennis Coach Web MVP | Streamlit + FastAPI")

@@ -3,11 +3,13 @@
 """
 import streamlit as st
 import requests
+from i18n import language_selector, t
 
 API_URL = "http://localhost:8000"
 
 st.set_page_config(page_title="Projects", page_icon="📊", layout="wide")
-st.title("📊 项目管理")
+language_selector()
+st.title(t("projects_title"))
 
 
 def api_get(path):
@@ -25,7 +27,7 @@ def api_post(path, json_data=None):
         r.raise_for_status()
         return r.json()
     except Exception as e:
-        st.error(f"请求失败: {e}")
+        st.error(f"{t('request_failed')}: {e}")
         return None
 
 
@@ -35,28 +37,28 @@ def api_delete(path):
         r.raise_for_status()
         return r.json()
     except Exception as e:
-        st.error(f"删除失败: {e}")
+        st.error(f"{t('request_failed')}: {e}")
         return None
 
 
 # ---- 创建项目 ----
-st.subheader("创建新项目")
+st.subheader(t("create_project"))
 with st.form("create_project"):
-    name = st.text_input("项目名称", placeholder="例如：正手训练")
-    desc = st.text_area("描述（可选）", placeholder="练习内容和目标...")
-    submitted = st.form_submit_button("创建项目")
+    name = st.text_input(t("project_name"), placeholder=t("project_name_placeholder"))
+    desc = st.text_area(t("description"), placeholder=t("description_placeholder"))
+    submitted = st.form_submit_button(t("create_btn"))
     if submitted and name:
         result = api_post("/api/projects/create", {"name": name, "description": desc})
         if result and result.get("status") == "success":
-            st.success(f"项目 '{name}' 创建成功！")
+            st.success(t("create_success"))
             st.rerun()
         else:
-            st.error("创建失败")
+            st.error(t("create_failed"))
 
 st.markdown("---")
 
 # ---- 项目列表 ----
-st.subheader("现有项目")
+st.subheader(t("existing_projects"))
 data = api_get("/api/projects/list")
 if data and data.get("projects"):
     for proj in data["projects"]:
@@ -68,16 +70,16 @@ if data and data.get("projects"):
             with col2:
                 st.metric("Sessions", proj.get('session_count', 0))
             with col3:
-                if st.button("删除", key=f"del_{proj['id']}", type="secondary"):
+                if st.button(t("delete"), key=f"del_{proj['id']}", type="secondary"):
                     api_delete(f"/api/projects/{proj['id']}")
                     st.rerun()
 
         # 显示关联的 sessions
         proj_detail = api_get(f"/api/projects/{proj['id']}")
         if proj_detail and proj_detail.get("sessions"):
-            with st.expander(f"查看 {proj['name']} 的 Sessions"):
+            with st.expander(f"{t('view_sessions')} - {proj['name']}"):
                 for s in proj_detail["sessions"]:
-                    st.write(f"- **{s['name']}** | 动作: {s.get('action_count', 0)} | "
+                    st.write(f"- **{s['name']}** | {t('actions')}: {s.get('action_count', 0)} | "
                              f"Good: {s.get('good_count', 0)} | Bad: {s.get('bad_count', 0)}")
 else:
-    st.info("还没有项目，在上面创建一个吧！")
+    st.info(t("no_projects_create"))
