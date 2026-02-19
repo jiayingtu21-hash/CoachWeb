@@ -1,5 +1,5 @@
 """
-AI Agent 对话页面 — ChatGPT 风格布局
+AI Agent 对话页面
 左侧可收缩会话导航 + 右侧聊天区域
 """
 import streamlit as st
@@ -10,142 +10,8 @@ from i18n import language_selector, t
 API_URL = "http://localhost:8000"
 
 st.set_page_config(page_title="Agent", page_icon="🤖💬", layout="wide")
-
-# 不调用 language_selector()，避免往 sidebar 写内容（否则会产生可展开分割线）
-# 语言切换放到页面内部顶栏
-from i18n import init_language
-init_language()
-
-# =============================================
-# CSS — ChatGPT 风格: 深色左栏 + 去掉侧边栏分割线
-# =============================================
-st.markdown("""
-<style>
-/* ---- 隐藏 sidebar 里导航之后的所有多余内容（可展开线等） ---- */
-
-/* ---- 左侧会话面板样式 (深色主题) ---- */
-.conv-panel {
-    background: #1a1a2e;
-    border-radius: 12px;
-    padding: 12px;
-    height: calc(100vh - 140px);
-    overflow-y: auto;
-    color: #e0e0e0;
-}
-.conv-panel::-webkit-scrollbar {
-    width: 4px;
-}
-.conv-panel::-webkit-scrollbar-thumb {
-    background: #444;
-    border-radius: 4px;
-}
-
-/* 新对话按钮 */
-.new-conv-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    padding: 10px 12px;
-    background: #2d2d44;
-    border: 1px dashed #555;
-    border-radius: 8px;
-    color: #e0e0e0;
-    font-size: 14px;
-    cursor: pointer;
-    margin-bottom: 12px;
-    transition: background 0.2s;
-}
-.new-conv-btn:hover {
-    background: #3d3d5c;
-}
-
-/* 单条对话记录 */
-.conv-item {
-    padding: 10px 12px;
-    border-radius: 8px;
-    margin-bottom: 4px;
-    cursor: pointer;
-    transition: background 0.2s;
-    color: #ccc;
-    font-size: 13px;
-    line-height: 1.4;
-    border: 1px solid transparent;
-}
-.conv-item:hover {
-    background: #2d2d44;
-}
-.conv-item.active {
-    background: #2d2d44;
-    border-color: #FF6B35;
-    color: #fff;
-}
-.conv-item .conv-title {
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 200px;
-}
-.conv-item .conv-meta {
-    font-size: 11px;
-    color: #888;
-    margin-top: 2px;
-}
-
-/* 面板标题 */
-.panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 4px 4px 8px;
-    border-bottom: 1px solid #333;
-    margin-bottom: 10px;
-}
-.panel-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: #aaa;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* 聊天区域 */
-.chat-area {
-    height: calc(100vh - 140px);
-    display: flex;
-    flex-direction: column;
-}
-
-/* 切换按钮 */
-.toggle-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    background: #fafafa;
-    cursor: pointer;
-    font-size: 18px;
-    transition: all 0.2s;
-    margin-bottom: 8px;
-}
-.toggle-btn:hover {
-    background: #eee;
-    border-color: #bbb;
-}
-
-/* 空状态 */
-.empty-conv {
-    text-align: center;
-    color: #666;
-    padding: 30px 10px;
-    font-size: 13px;
-}
-</style>
-""", unsafe_allow_html=True)
+language_selector()
+st.title(t("agent_title"))
 
 
 # =============================================
@@ -202,29 +68,10 @@ if "show_conv_panel" not in st.session_state:
 # 布局: 可收缩侧栏 + 聊天区域
 # =============================================
 
-# 顶栏: 汉堡按钮 + 标题 + 语言切换
-toggle_col, title_col, lang_col = st.columns([0.04, 0.82, 0.14])
-with toggle_col:
-    if st.button("☰", key="toggle_panel", help=t("agent_toggle_panel")):
-        st.session_state.show_conv_panel = not st.session_state.show_conv_panel
-        st.rerun()
-
-with title_col:
-    st.markdown(f"### {t('agent_title')}")
-
-with lang_col:
-    lang = st.radio(
-        "🌐",
-        options=["zh", "en"],
-        format_func=lambda x: "中文" if x == "zh" else "EN",
-        index=0 if st.session_state.get("lang", "zh") == "zh" else 1,
-        key="agent_lang_radio",
-        horizontal=True,
-        label_visibility="collapsed",
-    )
-    if lang != st.session_state.get("lang", "zh"):
-        st.session_state.lang = lang
-        st.rerun()
+# 切换按钮
+if st.button("☰", key="toggle_panel", help=t("agent_toggle_panel")):
+    st.session_state.show_conv_panel = not st.session_state.show_conv_panel
+    st.rerun()
 
 # 根据面板展开/收缩决定列宽
 if st.session_state.show_conv_panel:
@@ -280,10 +127,7 @@ if st.session_state.show_conv_panel and panel_col is not None:
 
                 st.caption(f"  {count} {t('agent_messages')} · {last_active}")
         else:
-            st.markdown(
-                f"<div class='empty-conv'>{t('agent_no_conversations')}</div>",
-                unsafe_allow_html=True,
-            )
+            st.info(t("agent_no_conversations_simple"))
 
 # ---- 右侧聊天区域 ----
 with chat_col:

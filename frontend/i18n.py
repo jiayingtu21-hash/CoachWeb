@@ -170,6 +170,7 @@ TRANSLATIONS = {
     "agent_recent_conversations": {"zh": "💬 最近对话", "en": "💬 Recent Conversations"},
     "agent_messages": {"zh": "条消息", "en": "messages"},
     "agent_no_conversations": {"zh": "还没有对话记录<br>开始你的第一次对话吧！", "en": "No conversations yet<br>Start your first chat!"},
+    "agent_no_conversations_simple": {"zh": "还没有对话记录，开始你的第一次对话吧！", "en": "No conversations yet. Start your first chat!"},
 }
 
 
