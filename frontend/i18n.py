@@ -154,6 +154,18 @@ TRANSLATIONS = {
     "model_label": {"zh": "模型", "en": "Model"},
     "accuracy_label": {"zh": "准确率", "en": "Accuracy"},
     "samples_label": {"zh": "样本", "en": "Samples"},
+
+    # ---- Agent Chat ----
+    "agent_title": {"zh": "🤖💬 AI 助手", "en": "🤖💬 AI Agent"},
+    "agent_welcome": {
+        "zh": "你好！我是你的网球教练 AI 助手。\n\n我可以帮你：\n- 📊 查看数据概览 — \"我有多少数据？\"\n- 🏆 分析训练结果 — \"我最好的模型是什么？\"\n- 📋 查看质量分布 — \"质量分布是怎样的？\"\n- 🎾 获取改进建议 — \"如何提高我的技术？\"\n\n试试看吧！",
+        "en": "Hello! I'm your Tennis Coach AI Assistant.\n\nI can help you with:\n- 📊 Data overview — \"How much data do I have?\"\n- 🏆 Training results — \"What was my best model?\"\n- 📋 Quality breakdown — \"Show quality distribution\"\n- 🎾 Coaching advice — \"How can I improve?\"\n\nTry it out!"
+    },
+    "agent_input_placeholder": {"zh": "输入你的问题...", "en": "Type your question..."},
+    "agent_thinking": {"zh": "思考中...", "en": "Thinking..."},
+    "agent_error": {"zh": "抱歉，请求失败。请确认后端已启动。", "en": "Sorry, request failed. Please check that the backend is running."},
+    "agent_new_conversation": {"zh": "🔄 开始新对话", "en": "🔄 New Conversation"},
+    "agent_conversation_id": {"zh": "对话 ID", "en": "Conversation ID"},
 }
 
 

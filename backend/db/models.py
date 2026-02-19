@@ -100,3 +100,14 @@ class TrainingRun(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     project = relationship("Project", back_populates="training_runs")
+
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    conversation_id = Column(String, nullable=False, index=True)
+    role = Column(String, nullable=False)       # "user" or "assistant"
+    content = Column(Text, nullable=False)
+    tool_calls = Column(JSON, nullable=True)    # 记录 agent 调用了哪些工具
+    created_at = Column(DateTime, default=datetime.utcnow)

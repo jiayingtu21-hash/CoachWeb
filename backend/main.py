@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config import settings
 from db.database import init_db
-from routers import sessions, projects, training, visualization
+from routers import sessions, projects, training, visualization, agent
 
 app = FastAPI(
     title="Tennis Coach API",
@@ -31,6 +31,7 @@ app.include_router(sessions.router, prefix="/api/sessions", tags=["Sessions"])
 app.include_router(projects.router, prefix="/api/projects", tags=["Projects"])
 app.include_router(training.router, prefix="/api/training", tags=["Training"])
 app.include_router(visualization.router, prefix="/api/viz", tags=["Visualization"])
+app.include_router(agent.router, prefix="/api/agent", tags=["Agent"])
 
 
 @app.get("/")

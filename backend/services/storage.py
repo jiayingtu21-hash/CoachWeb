@@ -327,3 +327,66 @@ def load_csv(session_id: str, filename: str) -> Optional[str]:
 def get_model_path(run_id: str, ext: str = ".mlmodel") -> Path:
     _ensure_file_dirs()
     return Path(settings.data_dir) / "models" / f"{run_id}{ext}"
+
+
+# ---- Chat Messages ----
+
+from db.models import ChatMessage
+
+
+def save_chat_message(db: DBSession, conversation_id: str, role: str, content: str,
+                      tool_calls: Optional[list] = None) -> dict:
+    msg = ChatMessage(
+        conversation_id=conversation_id,
+        role=role,
+        content=content,
+        tool_calls=tool_calls,
+    )
+    db.add(msg)
+    db.commit()
+    db.refresh(msg)
+    return _chat_message_to_dict(msg)
+
+
+def list_chat_messages(db: DBSession, conversation_id: str) -> list[dict]:
+    messages = (
+        db.query(ChatMessage)
+        .filter(ChatMessage.conversation_id == conversation_id)
+        .order_by(ChatMessage.created_at)
+        .all()
+    )
+    return [_chat_message_to_dict(m) for m in messages]
+
+
+def list_conversations(db: DBSession, limit: int = 20) -> list[dict]:
+    from sqlalchemy import func
+    results = (
+        db.query(
+            ChatMessage.conversation_id,
+            func.max(ChatMessage.created_at).label("last_active"),
+            func.count(ChatMessage.id).label("message_count"),
+        )
+        .group_by(ChatMessage.conversation_id)
+        .order_by(func.max(ChatMessage.created_at).desc())
+        .limit(limit)
+        .all()
+    )
+    return [
+        {
+            "conversation_id": r.conversation_id,
+            "last_active": r.last_active.isoformat() if r.last_active else "",
+            "message_count": r.message_count,
+        }
+        for r in results
+    ]
+
+
+def _chat_message_to_dict(m: ChatMessage) -> dict:
+    return {
+        "id": m.id,
+        "conversation_id": m.conversation_id,
+        "role": m.role,
+        "content": m.content,
+        "tool_calls": m.tool_calls,
+        "created_at": m.created_at.isoformat() if m.created_at else "",
+    }
