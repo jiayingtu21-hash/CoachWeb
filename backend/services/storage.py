@@ -371,14 +371,25 @@ def list_conversations(db: DBSession, limit: int = 20) -> list[dict]:
         .limit(limit)
         .all()
     )
-    return [
-        {
+    convs = []
+    for r in results:
+        # 获取该对话的第一条用户消息作为标题
+        first_user_msg = (
+            db.query(ChatMessage.content)
+            .filter(
+                ChatMessage.conversation_id == r.conversation_id,
+                ChatMessage.role == "user",
+            )
+            .order_by(ChatMessage.created_at)
+            .first()
+        )
+        convs.append({
             "conversation_id": r.conversation_id,
             "last_active": r.last_active.isoformat() if r.last_active else "",
             "message_count": r.message_count,
-        }
-        for r in results
-    ]
+            "first_message": first_user_msg[0] if first_user_msg else "",
+        })
+    return convs
 
 
 def _chat_message_to_dict(m: ChatMessage) -> dict:

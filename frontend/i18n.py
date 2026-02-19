@@ -164,8 +164,12 @@ TRANSLATIONS = {
     "agent_input_placeholder": {"zh": "输入你的问题...", "en": "Type your question..."},
     "agent_thinking": {"zh": "思考中...", "en": "Thinking..."},
     "agent_error": {"zh": "抱歉，请求失败。请确认后端已启动。", "en": "Sorry, request failed. Please check that the backend is running."},
-    "agent_new_conversation": {"zh": "🔄 开始新对话", "en": "🔄 New Conversation"},
+    "agent_new_conversation": {"zh": "开始新对话", "en": "New Conversation"},
     "agent_conversation_id": {"zh": "对话 ID", "en": "Conversation ID"},
+    "agent_toggle_panel": {"zh": "展开/收起会话面板", "en": "Toggle conversation panel"},
+    "agent_recent_conversations": {"zh": "💬 最近对话", "en": "💬 Recent Conversations"},
+    "agent_messages": {"zh": "条消息", "en": "messages"},
+    "agent_no_conversations": {"zh": "还没有对话记录<br>开始你的第一次对话吧！", "en": "No conversations yet<br>Start your first chat!"},
 }
 
 
