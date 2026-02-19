@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data & Storage (generated at runtime)
+backend/storage/csv_files/
+backend/storage/models/
+backend/storage/tennis_coach.db
+backend/storage/projects/
+backend/storage/sessions/
+backend/storage/training_runs/
+data/
+
+# Logs
+*.log
+nohup.out
+
+# Environment
+.env
+
+# Claude Code local settings
+.claude/

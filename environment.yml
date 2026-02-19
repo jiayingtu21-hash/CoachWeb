@@ -1,0 +1,22 @@
+name: tennis-web
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - numpy
+  - pandas
+  - scikit-learn
+  - pip
+  - pip:
+    - fastapi==0.109.0
+    - uvicorn[standard]==0.27.0
+    - python-multipart==0.0.6
+    - streamlit==1.30.0
+    - plotly==5.18.0
+    - coremltools==7.1
+    - httpx==0.26.0
+    - python-dotenv==1.0.0
+    - pydantic==2.5.3
+    - pydantic-settings==2.1.0
+    - requests==2.31.0
